@@ -1,18 +1,20 @@
 """Per-frame image quality: brightness, contrast, sharpness → frame_quality + quality_flags.
 
 All measurements are computed on a grey copy resized to a fixed width, so thresholds do not
-depend on the camera resolution. Framing checks (is the whole arm/torso visible?) need pose
-landmarks and are added in Phase 2; person-count flags are available via `person_flags`.
+depend on the camera resolution. Framing (`framing_flags`) and person-count (`person_flags`)
+checks use pose output and are applied by the pose estimator.
 """
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 
 import cv2
 import numpy as np
 
 from kinevra.config import QualityCfg
+from kinevra.schemas import Landmark
 from kinevra.vision.preprocess import resize_to_width, to_gray
 from kinevra.vision.types import Image
 
@@ -73,6 +75,19 @@ def assess_frame(image: Image, cfg: QualityCfg) -> FrameQuality:
     sharp_score = _ramp(sharpness, 0.5 * cfg.blur_laplacian_var, 2.0 * cfg.blur_laplacian_var)
     score = min(light_score, contrast_score, sharp_score)
     return FrameQuality(brightness, contrast, sharpness, round(score, 4), flags)
+
+
+def framing_flags(
+    landmarks: Mapping[str, Landmark], required: Iterable[str], visibility_threshold: float
+) -> list[str]:
+    """`out_of_frame` if any required landmark is missing, invisible or outside the image."""
+    for name in required:
+        lm = landmarks.get(name)
+        if lm is None or lm.visibility < visibility_threshold:
+            return [OUT_OF_FRAME]
+        if not (0.0 <= lm.x <= 1.0 and 0.0 <= lm.y <= 1.0):
+            return [OUT_OF_FRAME]
+    return []
 
 
 def person_flags(person_count: int) -> list[str]:

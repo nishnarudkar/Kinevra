@@ -14,6 +14,15 @@ quality:                 # measured on a grey copy resized to analysis_width
   overexposed_brightness: 225  # mean grey level above this → overexposed
   min_contrast: 15             # grey std below this → low_contrast (e.g. lens covered)
   blur_laplacian_var: 50       # Laplacian variance below this → blurry
+pose:
+  model: rtmpose           # rtmpose | mediapipe (see docs/decisions/0002-pose-model.md)
+  model_dir: models        # relative to repo root; files listed in models/README.md
+  engine: new              # OpenCV 5 DNN engine: new | classic | auto (never ONNX Runtime)
+  det_score_threshold: 0.5
+  det_nms_threshold: 0.45
+  bbox_padding: 1.25       # top-down crop padding around the person box
+  roi_clahe: true          # CLAHE on ROI crops during re-analysis
+  roi_padding: 0.6         # ROI = box around side's hip/shoulder/elbow/wrist, padded
 storage:
   backend: local         # local | aws
   local_dir: data/sessions

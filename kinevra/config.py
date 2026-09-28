@@ -148,6 +148,18 @@ class QualityCfg(_Strict):
         return self
 
 
+class PoseCfg(_Strict):
+    model: Literal["rtmpose", "mediapipe"]
+    model_dir: str
+    # Native OpenCV DNN engines only; the ONNX Runtime engine is deliberately not allowed.
+    engine: Literal["new", "classic", "auto"]
+    det_score_threshold: float = Field(ge=0, le=1)
+    det_nms_threshold: float = Field(gt=0, le=1)
+    bbox_padding: float = Field(ge=1)
+    roi_clahe: bool
+    roi_padding: float = Field(ge=0)
+
+
 class StorageCfg(_Strict):
     backend: Literal["local", "aws"]
     local_dir: str
@@ -165,6 +177,7 @@ class AppConfig(_Strict):
     capture: CaptureCfg
     buffer: BufferCfg
     quality: QualityCfg
+    pose: PoseCfg
     storage: StorageCfg
     logging: LoggingCfg
     exercise: ExerciseConfig
@@ -178,6 +191,8 @@ ENV_OVERRIDES: dict[str, tuple[str, ...]] = {
     "KINEVRA_LLM_PROVIDER": ("exercise", "llm", "provider"),
     "KINEVRA_LLM_MODEL_ID": ("exercise", "llm", "model_id"),
     "KINEVRA_LLM_REGION": ("exercise", "llm", "region"),
+    "KINEVRA_POSE_MODEL": ("pose", "model"),
+    "KINEVRA_MODEL_DIR": ("pose", "model_dir"),
     "KINEVRA_STORAGE_BACKEND": ("storage", "backend"),
     "KINEVRA_BUCKET": ("storage", "bucket"),
     "KINEVRA_TABLE": ("storage", "table"),

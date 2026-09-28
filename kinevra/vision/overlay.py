@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Iterable, Mapping, Sequence
 
 import cv2
 import numpy as np
 
+from kinevra.schemas import Landmark
 from kinevra.vision.quality import FrameQuality
 from kinevra.vision.types import Image
 
@@ -93,4 +94,43 @@ def draw_countdown(image: Image, seconds_left: int) -> Image:
     text = str(seconds_left)
     (tw, th), _ = cv2.getTextSize(text, FONT, 4.0, 6)
     cv2.putText(out, text, ((w - tw) // 2, (h + th) // 2), FONT, 4.0, AMBER, 6, cv2.LINE_AA)
+    return out
+
+
+def visibility_colour(visibility: float, threshold: float) -> tuple[int, int, int]:
+    if visibility >= threshold:
+        return GREEN
+    if visibility >= threshold / 2:
+        return AMBER
+    return RED
+
+
+def draw_skeleton(
+    image: Image,
+    landmarks: Mapping[str, Landmark],
+    edges: Iterable[tuple[str, str]],
+    *,
+    visibility_threshold: float = 0.5,
+    highlight_side: str | None = None,
+) -> Image:
+    """Skeleton coloured by landmark visibility; the exercising side is drawn thicker."""
+    out = image.copy()
+    h, w = out.shape[:2]
+
+    def px(lm: Landmark) -> tuple[int, int]:
+        return round(lm.x * w), round(lm.y * h)
+
+    for a, b in edges:
+        la, lb = landmarks.get(a), landmarks.get(b)
+        if la is None or lb is None:
+            continue
+        vis = min(la.visibility, lb.visibility)
+        side = highlight_side is not None and a.startswith(highlight_side)
+        side = side and highlight_side is not None and b.startswith(highlight_side)
+        colour = visibility_colour(vis, visibility_threshold)
+        cv2.line(out, px(la), px(lb), colour, 4 if side else 2, cv2.LINE_AA)
+    for name, lm in landmarks.items():
+        big = highlight_side is not None and name.startswith(highlight_side)
+        colour = visibility_colour(lm.visibility, visibility_threshold)
+        cv2.circle(out, px(lm), 5 if big else 3, colour, -1, cv2.LINE_AA)
     return out
