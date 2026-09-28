@@ -67,14 +67,18 @@ class RepsCfg(_Strict):
 
 class BaselineCfg(_Strict):
     first_n_good_reps: int = Field(ge=1)
-    recent_k: int = Field(ge=1)
+    recent_k: int = Field(ge=2)
+    trend_deadband_deg_per_rep: float = Field(ge=0)
+    confidence_window_s: float = Field(gt=0)
 
 
 class RulesCfg(_Strict):
     rom_ratio_deviation: float = Field(gt=0, le=1)
     max_trunk_lean_deg: float = Field(ge=0)
     max_elbow_flexion_deg: float = Field(ge=0)
+    max_shoulder_elevation: float = Field(gt=0)
     min_confidence: float = Field(ge=0, le=1)
+    uncertain_flag_fraction: float = Field(gt=0, le=1)
 
 
 class ToolsCfg(_Strict):

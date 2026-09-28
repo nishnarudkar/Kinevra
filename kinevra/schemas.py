@@ -64,10 +64,11 @@ class RepMetrics(BaseModel):
     peak_velocity_dps: float
     smoothness: float
     max_elbow_flexion: float
-    max_trunk_lean: float
+    max_trunk_lean: float  # signed value with the largest magnitude (+ = away from the arm)
     confidence: float
     rule_quality: RepQuality
-    rule_reasons: list[str]
+    rule_reasons: list[str]  # "code: detail", e.g. "trunk_lean: 14.0° > 10°"
+    max_shoulder_elevation: float | None = None  # shrug check (PROJECT.md §2.4)
 
 
 class SessionEvidence(BaseModel):
@@ -148,3 +149,24 @@ class ClipMetadata(BaseModel):  # sidecar JSON written next to each recorded cli
     notes: str | None = None
     kinevra_version: str
     opencv_version: str
+
+
+DeviationLabel = Literal[
+    "reduced_rom", "trunk_lean", "elbow_flexion", "shoulder_elevation", "abnormal_duration"
+]
+
+
+class RepLabel(BaseModel):  # one hand-labelled repetition, in order
+    t: float | None = None  # clip time when the labeller marked the rep (optional)
+    quality: Literal["GOOD", "DEVIATION"]
+    deviations: list[DeviationLabel] = Field(default_factory=list)
+
+
+class ClipLabel(BaseModel):  # data/labels/<clip stem>.json (hand-counted ground truth)
+    clip: str  # video file name in data/clips/
+    side: Side
+    reps: int  # completed repetitions (partial raises NOT counted)
+    partial_reps: int = 0
+    rep_labels: list[RepLabel] = Field(default_factory=list)  # optional per-rep labels
+    labeller: str | None = None
+    notes: str | None = None

@@ -21,11 +21,15 @@ reps:
 baseline:
   first_n_good_reps: 3
   recent_k: 5
+  trend_deadband_deg_per_rep: 2.0   # |ROM slope| below this → "stable"
+  confidence_window_s: 5.0          # rolling tracking confidence / flag window
 rules:
   rom_ratio_deviation: 0.80
   max_trunk_lean_deg: 10
   max_elbow_flexion_deg: 30
+  max_shoulder_elevation: 0.10      # shrug: shoulder height +10% over rest baseline
   min_confidence: 0.6
+  uncertain_flag_fraction: 0.3      # quality flag on >30% of a rep's frames → UNCERTAIN
 tools:
   reanalyze_roi_scale: 2.0
   reanalyze_trigger_confidence: [0.45, 0.75]   # borderline band → agent should look again
