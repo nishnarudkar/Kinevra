@@ -55,3 +55,25 @@ def test_missing_video_exits_with_error(tmp_path: Path) -> None:
     proc = _run("--video", str(tmp_path / "missing.mp4"), "--headless")
     assert proc.returncode == 2
     assert "not found" in proc.stderr
+
+
+def test_csv_export_with_pose(synthetic_video: Path, tmp_path: Path) -> None:
+    from kinevra.config import load_config
+    from kinevra.movement.export import FIELDS, read_feature_csv
+    from kinevra.pose.factory import model_dir
+    from kinevra.pose.opencv_dnn import RTMDET_FILE, RTMPOSE_FILE
+
+    mdir = model_dir(load_config(env={}))
+    if not all((mdir / f).is_file() for f in (RTMDET_FILE, RTMPOSE_FILE)):
+        import pytest
+
+        pytest.skip("rtmpose files missing")
+    out = tmp_path / "features.csv"
+    proc = _run("--video", str(synthetic_video), "--headless", "--csv", str(out))
+    assert proc.returncode == 0, proc.stderr
+    assert json.loads(proc.stdout)["csv"] == str(out)
+    rows = read_feature_csv(out)
+    assert len(rows) == VIDEO_FRAMES
+    assert set(rows[0]) == set(FIELDS)
+    assert rows[0]["shoulder_abduction_deg"] is None  # no person in the synthetic video
+    assert "no_person" in rows[0]["quality_flags"]

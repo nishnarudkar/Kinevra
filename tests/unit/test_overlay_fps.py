@@ -65,3 +65,20 @@ def test_draw_skeleton_colours_by_visibility() -> None:
     assert not img.any()
     assert tuple(int(v) for v in out[50, 50]) == GREEN
     assert visibility_colour(0.3, 0.5) == AMBER and visibility_colour(0.1, 0.5) == RED
+
+
+def test_mirror_landmarks_and_angle_arc() -> None:
+    from kinevra.schemas import Landmark
+    from kinevra.vision.overlay import draw_angle_arc, mirror_landmarks
+
+    lms = {"right_elbow": Landmark(name="right_elbow", x=0.2, y=0.5, visibility=0.9)}
+    mirrored = mirror_landmarks(lms)
+    assert mirrored["right_elbow"].x == pytest.approx(0.8) and lms["right_elbow"].x == 0.2
+
+    img = np.zeros((200, 200, 3), dtype=np.uint8)
+    out = draw_angle_arc(img, (100, 100), (100, 180), (180, 100), 90.0, radius=40)
+    assert not img.any()
+    # the arc passes through the bisector of the 90° wedge (down-right), not the far side
+    near = out[100 + 26 : 100 + 32, 100 + 26 : 100 + 32].any()
+    far = out[100 - 32 : 100 - 26, 100 - 32 : 100 - 26].any()
+    assert near and not far

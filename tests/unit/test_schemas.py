@@ -55,6 +55,8 @@ SAMPLES: list[BaseModel] = [
         session_id="s1",
         frame_idx=42,
         t=2.8,
+        image_width=640,
+        image_height=480,
         landmarks={"right_elbow": Landmark(name="right_elbow", x=0.3, y=0.5, visibility=0.8)},
         person_count=1,
         frame_quality=0.9,
