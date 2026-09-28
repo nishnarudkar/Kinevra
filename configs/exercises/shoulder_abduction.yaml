@@ -1,0 +1,43 @@
+# PROTOTYPE DEFAULTS — not clinical thresholds. Tune from your own data.
+exercise: shoulder_abduction
+side: right
+landmarks:
+  primary_angle: [hip, shoulder, elbow]
+  elbow_angle: [shoulder, elbow, wrist]
+visibility_threshold: 0.5
+processing_fps: 15
+smoothing:
+  one_euro: {min_cutoff: 1.0, beta: 0.05, d_cutoff: 1.0}
+reps:
+  rest_angle_max: 30
+  raise_margin: 15
+  min_rom: 40
+  min_duration_s: 0.8
+  max_duration_s: 10
+baseline:
+  first_n_good_reps: 3
+  recent_k: 5
+rules:
+  rom_ratio_deviation: 0.80
+  max_trunk_lean_deg: 10
+  max_elbow_flexion_deg: 30
+  min_confidence: 0.6
+tools:
+  reanalyze_roi_scale: 2.0
+  reanalyze_trigger_confidence: [0.45, 0.75]   # borderline band → agent should look again
+  flow_roi_padding: 0.15
+agent:
+  max_tool_calls: 4
+  feedback_min_reps_between: 2
+  escalation:
+    consecutive_confirmed_deviations: 3
+    rom_ratio_below: 0.80
+llm:
+  provider: bedrock
+  model_id: "<model enabled in your region>"   # override with KINEVRA_LLM_MODEL_ID
+  region: "<your region>"                      # override with KINEVRA_LLM_REGION
+  temperature: 0.2
+  timeout_s: 4
+limits:
+  max_clip_seconds: 90
+  max_upload_mb: 50

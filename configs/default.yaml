@@ -1,0 +1,18 @@
+# Runtime settings shared by live mode, clip mode and the API.
+exercise_config: exercises/shoulder_abduction.yaml   # relative to configs/
+capture:
+  camera_index: 0
+  width: 640
+  height: 480
+  target_fps: 30
+buffer:
+  seconds: 20            # ring buffer kept for agent re-analysis
+  downscale_width: 640
+storage:
+  backend: local         # local | aws
+  local_dir: data/sessions
+  bucket: null           # set via KINEVRA_BUCKET in AWS
+  table: null            # set via KINEVRA_TABLE in AWS
+logging:
+  level: INFO
+  json: false
