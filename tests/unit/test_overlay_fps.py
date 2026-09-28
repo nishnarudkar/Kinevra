@@ -82,3 +82,21 @@ def test_mirror_landmarks_and_angle_arc() -> None:
     near = out[100 + 26 : 100 + 32, 100 + 26 : 100 + 32].any()
     far = out[100 - 32 : 100 - 26, 100 - 32 : 100 - 26].any()
     assert near and not far
+
+
+def test_rep_panel() -> None:
+    from kinevra.vision.overlay import draw_rep_panel
+
+    img = np.zeros((480, 640, 3), dtype=np.uint8)
+    out = draw_rep_panel(
+        img,
+        7,
+        "RAISING",
+        last_rom=132.4,
+        last_quality="DEVIATION",
+        last_reason="reduced_rom: 100.0° < 80%",
+        baseline_rom=140.0,
+    )
+    assert not img.any() and out[400:450, 400:].any()
+    assert tuple(int(v) for v in out[480 - 24 - 108 - 8 + 80, 640 - 250 - 8 + 50]) == AMBER
+    assert draw_rep_panel(img, 0, "REST").any()
