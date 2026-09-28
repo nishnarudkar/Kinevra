@@ -85,6 +85,10 @@ class ToolsCfg(_Strict):
     reanalyze_roi_scale: float = Field(ge=1)
     reanalyze_trigger_confidence: tuple[float, float]
     flow_roi_padding: float = Field(ge=0)
+    reanalyze_max_frames: int = Field(ge=3)
+    flow_jitter_ratio: float = Field(gt=1)
+    camera_issue_fraction: float = Field(gt=0, le=1)
+    subject_torso_frac: tuple[float, float]
 
     @model_validator(mode="after")
     def _band_ordered(self) -> ToolsCfg:
@@ -102,6 +106,8 @@ class EscalationCfg(_Strict):
 class AgentCfg(_Strict):
     max_tool_calls: int = Field(ge=0)
     feedback_min_reps_between: int = Field(ge=0)
+    triage_min_smoothness: float = Field(ge=0, le=1)
+    quality_check_interval_s: float = Field(gt=0)
     escalation: EscalationCfg
 
 

@@ -34,9 +34,15 @@ tools:
   reanalyze_roi_scale: 2.0
   reanalyze_trigger_confidence: [0.45, 0.75]   # borderline band → agent should look again
   flow_roi_padding: 0.15
+  reanalyze_max_frames: 45          # frames re-run per rep (evenly subsampled)
+  flow_jitter_ratio: 1.6            # landmark path > 1.6x optical-flow path → landmark jitter
+  camera_issue_fraction: 0.3        # issue on >30% of the checked frames → report it
+  subject_torso_frac: [0.12, 0.45]  # torso height / frame height outside this → too far/close
 agent:
   max_tool_calls: 4
   feedback_min_reps_between: 2
+  triage_min_smoothness: 0.85       # smoother reps than this need no second look
+  quality_check_interval_s: 5.0     # re-check the camera this often while data is poor
   escalation:
     consecutive_confirmed_deviations: 3
     rom_ratio_below: 0.80
