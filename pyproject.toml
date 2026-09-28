@@ -25,6 +25,7 @@ dev = [
     "pre-commit>=4.3,<5",
     "types-PyYAML>=6.0.12",
     "onnx>=1.19,<2",  # model preparation only (scripts/download_models.py)
+    "matplotlib>=3.10,<4",  # eval plots only
 ]
 
 [tool.uv]
@@ -53,7 +54,7 @@ plugins = ["pydantic.mypy"]
 files = ["kinevra", "tests", "scripts"]
 
 [[tool.mypy.overrides]]
-module = ["cv2", "cv2.*", "scipy", "scipy.*"]
+module = ["cv2", "cv2.*", "scipy", "scipy.*", "matplotlib", "matplotlib.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
