@@ -1,0 +1,37 @@
+# Data, media, models — never committed (PROJECT.md §13)
+data/
+*.onnx
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Node / web
+node_modules/
+web/dist/
+
+# CDK
+infra/cdk.out/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

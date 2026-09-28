@@ -1,0 +1,64 @@
+[project]
+name = "kinevra"
+version = "0.1.0"
+description = "Agentic computer vision for rehabilitation movement monitoring (OpenCV 5 + AWS)."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+authors = [{ name = "Nishant Narudkar" }]
+dependencies = [
+    "numpy==2.3.*",
+    "scipy==1.16.*",
+    "pydantic>=2.11,<3",
+    "pyyaml>=6.0.2,<7",
+]
+
+[project.optional-dependencies]
+# Exactly one OpenCV 5 wheel per environment (see PROJECT.md §4).
+gui = ["opencv-python==5.0.0.93"]            # local dev / live mode (needs imshow)
+headless = ["opencv-python-headless==5.0.0.93"]  # CI, Lambda, servers
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4,<9",
+    "ruff>=0.13,<0.14",
+    "mypy>=1.18,<2",
+    "pre-commit>=4.3,<5",
+    "types-PyYAML>=6.0.12",
+]
+
+[tool.uv]
+conflicts = [[{ extra = "gui" }, { extra = "headless" }]]
+default-groups = ["dev"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["kinevra"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["web", "infra/cdk.out"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+files = ["kinevra", "tests"]
+
+[[tool.mypy.overrides]]
+module = ["cv2", "cv2.*", "scipy", "scipy.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "bedrock: calls Amazon Bedrock (needs AWS credentials; excluded from CI)",
+    "camera: needs a physical webcam (excluded from CI)",
+]
