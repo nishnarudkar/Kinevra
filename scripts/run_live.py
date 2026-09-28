@@ -1,4 +1,4 @@
-"""Live viewer: capture → quality → frame buffer → pose (OpenCV 5 DNN) → features → HUD.
+"""Live viewer: capture → quality → buffer → pose (OpenCV 5 DNN) → features → reps + rules.
 
 Examples:
     uv run python scripts/run_live.py                      # webcam 0
@@ -26,9 +26,10 @@ import cv2
 from kinevra.config import load_config
 from kinevra.movement.export import FeatureCsvWriter
 from kinevra.movement.features import FeatureExtractor, raw_features
+from kinevra.movement.session import MovementSession
 from kinevra.pose.base import COCO17_EDGES, DnnPoseEstimator
 from kinevra.pose.factory import MODEL_NAMES, create_estimator
-from kinevra.schemas import FrameFeatures, Landmark, PoseFrame
+from kinevra.schemas import FrameFeatures, Landmark, PoseFrame, RepMetrics
 from kinevra.vision.buffer import FrameBuffer
 from kinevra.vision.capture import CaptureError, FrameSource
 from kinevra.vision.fps import FpsMeter
@@ -37,6 +38,7 @@ from kinevra.vision.overlay import (
     draw_angle_arc,
     draw_hud,
     draw_recording,
+    draw_rep_panel,
     draw_skeleton,
     mirror_landmarks,
 )
@@ -132,6 +134,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         None if pose_model == "none" else create_estimator(cfg, pose_model)
     )
     extractor = FeatureExtractor(cfg.exercise)
+    movement = MovementSession(cfg.exercise, "live", "live")
+    reps: list[RepMetrics] = []
     side = cfg.exercise.side
     vis_thr = cfg.exercise.visibility_threshold
     required = [f"{side}_{j}" for j in ("hip", "shoulder", "elbow", "wrist")]
@@ -165,6 +169,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 pose_ms.append(estimator.last_latency_ms)
                 flag_counts.update(pose.quality_flags)
                 feat = extractor.update(pose)
+                rep = movement.update(feat, pose.quality_flags)
+                if rep is not None:
+                    reps.append(rep)
                 if feat.shoulder_abduction_deg is not None:
                     abductions.append(feat.shoulder_abduction_deg)
                 if csv_writer:
@@ -219,6 +226,17 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                         [*quality.flags, *extra],
                     )
                 view = draw_hud(view, lines, quality)
+                if estimator is not None:
+                    last = reps[-1] if reps else None
+                    view = draw_rep_panel(
+                        view,
+                        len(reps),
+                        movement.counter.phase.value,
+                        last_rom=last.rom if last else None,
+                        last_quality=last.rule_quality.value if last else None,
+                        last_reason=last.rule_reasons[0] if last and last.rule_reasons else None,
+                        baseline_rom=movement.state.baseline_rom,
+                    )
                 if writer:
                     view = draw_recording(view)
                 cv2.imshow(WINDOW, view)
@@ -227,6 +245,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             if args.max_frames and meter.frames >= args.max_frames:
                 break
     finally:
+        movement.finish()
         frame_source.close()
         if writer:
             writer.close()
@@ -252,6 +271,16 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "abduction_min_max": (
             [round(min(abductions), 1), round(max(abductions), 1)] if abductions else None
         ),
+        "reps": [
+            {
+                "rep": r.rep_index,
+                "rom": round(r.rom, 1),
+                "quality": r.rule_quality.value,
+                "reasons": r.rule_reasons,
+            }
+            for r in reps
+        ],
+        "events": [f"{e.kind} @ {e.t_start:.1f}s: {e.detail}" for e in movement.events],
     }
 
 

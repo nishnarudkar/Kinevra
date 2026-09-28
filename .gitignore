@@ -1,5 +1,7 @@
 # Data, media, models — never committed (PROJECT.md §13)
-data/
+# Hand labels (small JSON, no personal data) ARE committed: they back the eval numbers.
+data/*
+!data/labels/
 *.onnx
 *.mp4
 *.mov

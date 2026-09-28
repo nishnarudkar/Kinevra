@@ -169,3 +169,38 @@ def draw_angle_arc(
     cv2.putText(out, label, org, FONT, 0.55, PANEL, 4, cv2.LINE_AA)  # dark outline
     cv2.putText(out, label, org, FONT, 0.55, colour, 2, cv2.LINE_AA)
     return out
+
+
+GREY = (150, 150, 150)
+QUALITY_COLOURS = {"GOOD": GREEN, "DEVIATION": AMBER, "UNCERTAIN": GREY}
+
+
+def draw_rep_panel(
+    image: Image,
+    reps: int,
+    phase: str,
+    *,
+    last_rom: float | None = None,
+    last_quality: str | None = None,
+    last_reason: str | None = None,
+    baseline_rom: float | None = None,
+) -> Image:
+    """Bottom-right panel: rep counter, phase, last rep's ROM and rule quality badge."""
+    out = image.copy()
+    h, w = out.shape[:2]
+    box_w, box_h = 250, 108
+    x0, y0 = w - box_w - 8, h - 24 - box_h - 8  # sits above the disclaimer bar
+    _panel(out, x0, y0, box_w, box_h, alpha=0.65)
+    cv2.putText(out, f"REPS {reps}", (x0 + 10, y0 + 36), FONT, 1.0, WHITE, 2, cv2.LINE_AA)
+    _text(out, phase.lower(), (x0 + 160, y0 + 32), WHITE, 0.5)
+    rom = "--" if last_rom is None else f"{last_rom:.0f} deg"
+    base = "" if baseline_rom is None else f"  (baseline {baseline_rom:.0f})"
+    _text(out, f"last ROM {rom}{base}", (x0 + 10, y0 + 62), WHITE, 0.48)
+    if last_quality is not None:
+        colour = QUALITY_COLOURS.get(last_quality, WHITE)
+        cv2.rectangle(out, (x0 + 10, y0 + 72), (x0 + 118, y0 + 94), colour, -1)
+        _text(out, last_quality, (x0 + 16, y0 + 89), PANEL, 0.5)
+        if last_reason:
+            code = last_reason.split(":")[0].replace("possible_", "?")[:16]
+            _text(out, code, (x0 + 126, y0 + 89), colour, 0.45)
+    return out
