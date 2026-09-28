@@ -8,6 +8,12 @@ capture:
 buffer:
   seconds: 20            # ring buffer kept for agent re-analysis
   downscale_width: 640
+quality:                 # measured on a grey copy resized to analysis_width
+  analysis_width: 320
+  low_light_brightness: 60     # mean grey level below this → low_light
+  overexposed_brightness: 225  # mean grey level above this → overexposed
+  min_contrast: 15             # grey std below this → low_contrast (e.g. lens covered)
+  blur_laplacian_var: 50       # Laplacian variance below this → blurry
 storage:
   backend: local         # local | aws
   local_dir: data/sessions

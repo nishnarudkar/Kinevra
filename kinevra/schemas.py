@@ -123,3 +123,24 @@ class ReviewEvent(BaseModel):
     status: Literal["PENDING", "ACKNOWLEDGED", "DISMISSED"] = "PENDING"
     reviewer_note: str | None = None
     created_at: str
+
+
+class ClipMetadata(BaseModel):  # sidecar JSON written next to each recorded clip
+    name: str
+    video_file: str
+    created_at: str
+    source: str  # "camera:0" or input path
+    width: int
+    height: int
+    fps_nominal: float
+    fps_measured: float
+    frames: int
+    duration_s: float
+    side: Side
+    consent: bool  # subject is the developer or a consenting volunteer
+    lighting: Literal["bright", "normal", "dim", "backlit"] | None = None
+    distance_m: float | None = None
+    camera_angle_deg: float | None = None
+    notes: str | None = None
+    kinevra_version: str
+    opencv_version: str

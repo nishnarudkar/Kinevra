@@ -134,6 +134,20 @@ class BufferCfg(_Strict):
     downscale_width: int = Field(gt=0)
 
 
+class QualityCfg(_Strict):
+    analysis_width: int = Field(gt=0)
+    low_light_brightness: float = Field(ge=0, le=255)
+    overexposed_brightness: float = Field(ge=0, le=255)
+    min_contrast: float = Field(gt=0)
+    blur_laplacian_var: float = Field(gt=0)
+
+    @model_validator(mode="after")
+    def _brightness_ordered(self) -> QualityCfg:
+        if self.low_light_brightness >= self.overexposed_brightness:
+            raise ValueError("quality.low_light_brightness must be < overexposed_brightness")
+        return self
+
+
 class StorageCfg(_Strict):
     backend: Literal["local", "aws"]
     local_dir: str
@@ -150,6 +164,7 @@ class AppConfig(_Strict):
     exercise_config: str
     capture: CaptureCfg
     buffer: BufferCfg
+    quality: QualityCfg
     storage: StorageCfg
     logging: LoggingCfg
     exercise: ExerciseConfig
