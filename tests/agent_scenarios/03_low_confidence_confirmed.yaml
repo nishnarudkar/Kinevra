@@ -1,0 +1,31 @@
+name: low-confidence deviation confirmed by ROI re-analysis
+description: Same pattern, but the ROI re-measurement confirms reduced ROM, so the agent gives feedback.
+steps:
+  - rep:
+      rep_index: 4
+      rom: 100
+      confidence: 0.58
+      rule_quality: UNCERTAIN
+      rule_reasons:
+        - "low_tracking_confidence: 0.58 < 0.6"
+        - "possible_reduced_rom: 100.0° < 80% of baseline 135.0° (74%)"
+    tool_outputs:
+      reanalyze_segment_roi:
+        {rom_before: 100, rom_after: 101, confidence_after: 0.85, quality_before: UNCERTAIN,
+         quality_after: DEVIATION, reasons_after: ["reduced_rom: 101.0° < 80% of baseline 135.0° (75%)"],
+         assessment: DEVIATION}
+    llm:
+      - tool_calls: [{name: reanalyze_segment_roi, args: {rep_index: 4}}]
+      - final:
+          action: PROVIDE_FEEDBACK
+          rationale: "ROI re-analysis confirms ROM 101° (75% of baseline) at confidence 0.85."
+          feedback_text: "Try to lift your arm a little higher, only as far as is comfortable."
+          feedback_category: reduced_rom
+          evidence_refs: {rep_index: 4, rom_after: 101}
+    expect:
+      action: PROVIDE_FEEDBACK
+      tools: [reanalyze_segment_roi]
+      llm_used: true
+      changed_assessment: true
+      feedback_contains: "lift your arm"
+      confirmed_streak: 1

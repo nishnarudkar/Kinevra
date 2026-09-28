@@ -1,0 +1,21 @@
+name: irregular trajectory is landmark jitter (optical flow)
+description: >
+  Low smoothness triggers the optical-flow check; the pixels moved smoothly while the landmarks
+  zig-zagged, so it is tracking jitter and the agent keeps monitoring.
+steps:
+  - rep: {rep_index: 5, smoothness: 0.62, confidence: 0.88}
+    tool_outputs:
+      verify_motion_optical_flow:
+        {landmark_path_px: 412.0, flow_path_px: 198.0, jitter_ratio: 2.08,
+         direction_agreement: 0.41, verdict: landmark_jitter, assessment: tracking_noise}
+    llm:
+      - tool_calls: [{name: verify_motion_optical_flow, args: {rep_index: 5}}]
+      - final:
+          action: CONTINUE_MONITORING
+          rationale: "Landmark path is 2.1x the optical-flow path: tracking jitter, not a movement irregularity."
+          evidence_refs: {rep_index: 5, jitter_ratio: 2.08}
+    expect:
+      action: CONTINUE_MONITORING
+      tools: [verify_motion_optical_flow]
+      changed_assessment: true
+      overrides: []

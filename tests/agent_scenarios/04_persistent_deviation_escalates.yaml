@@ -1,0 +1,57 @@
+name: persistent confirmed deviation escalates with snapshots
+description: >
+  Three reps in a row are confirmed below 80% of baseline. Rep 4 gets feedback, the feedback on
+  rep 5 is rate-limited, and rep 6 triggers annotated OpenCV snapshots plus a human review event.
+steps:
+  - rep:
+      {rep_index: 4, rom: 100, confidence: 0.7, rule_quality: DEVIATION,
+       rule_reasons: ["reduced_rom: 100.0° < 80% of baseline 135.0° (74%)"]}
+    evidence: {consecutive_deviations: 1, rom_trend: decreasing}
+    tool_outputs:
+      reanalyze_segment_roi:
+        {rom_after: 101, quality_after: DEVIATION, assessment: DEVIATION,
+         reasons_after: ["reduced_rom: 101.0° < 80% of baseline 135.0° (75%)"]}
+    llm:
+      - tool_calls: [{name: reanalyze_segment_roi, args: {rep_index: 4}}]
+      - final: {action: PROVIDE_FEEDBACK, rationale: "Confirmed ROM 101° (75%).",
+                feedback_category: reduced_rom, evidence_refs: {rep_index: 4}}
+    expect: {action: PROVIDE_FEEDBACK, tools: [reanalyze_segment_roi], confirmed_streak: 1}
+  - rep:
+      {rep_index: 5, rom: 97, confidence: 0.7, rule_quality: DEVIATION,
+       rule_reasons: ["reduced_rom: 97.0° < 80% of baseline 135.0° (72%)"]}
+    evidence: {consecutive_deviations: 2, rom_trend: decreasing}
+    tool_outputs:
+      reanalyze_segment_roi:
+        {rom_after: 97, quality_after: DEVIATION, assessment: DEVIATION,
+         reasons_after: ["reduced_rom: 97.0° < 80% of baseline 135.0° (72%)"]}
+    llm:
+      - tool_calls: [{name: reanalyze_segment_roi, args: {rep_index: 5}}]
+      - final: {action: PROVIDE_FEEDBACK, rationale: "Confirmed ROM 97° (72%).",
+                feedback_category: reduced_rom, evidence_refs: {rep_index: 5}}
+    expect:
+      {action: LOG_EVENT, tools: [reanalyze_segment_roi], overrides: [feedback_rate_limited],
+       confirmed_streak: 2}
+  - rep:
+      {rep_index: 6, rom: 94, confidence: 0.7, rule_quality: DEVIATION,
+       rule_reasons: ["reduced_rom: 94.0° < 80% of baseline 135.0° (70%)"]}
+    evidence: {consecutive_deviations: 3, rom_trend: decreasing}
+    tool_outputs:
+      reanalyze_segment_roi:
+        {rom_after: 95, quality_after: DEVIATION, assessment: DEVIATION,
+         reasons_after: ["reduced_rom: 95.0° < 80% of baseline 135.0° (70%)"]}
+      render_evidence_snapshot:
+        {snapshot_keys: [s1/rep0006_start.jpg, s1/rep0006_peak.jpg, s1/rep0006_end.jpg]}
+    llm:
+      - tool_calls: [{name: reanalyze_segment_roi, args: {rep_index: 6}}]
+      - tool_calls: [{name: render_evidence_snapshot, args: {rep_index: 6}}]
+      - final:
+          action: REQUEST_HUMAN_REVIEW
+          rationale: "3 consecutive confirmed reps below 80% of baseline (101°, 97°, 95° vs 135°)."
+          evidence_refs: {rep_index: 6, roms: [101, 97, 95], baseline_rom: 135}
+    expect:
+      action: REQUEST_HUMAN_REVIEW
+      tools: [reanalyze_segment_roi, render_evidence_snapshot]
+      review_events: 1
+      review_snapshots: 3
+      overrides: []
+      confirmed_streak: 3

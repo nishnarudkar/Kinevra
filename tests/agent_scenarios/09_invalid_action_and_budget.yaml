@@ -1,0 +1,25 @@
+name: invalid action and tool-budget overrun
+description: Guardrails replace an invalid action and stop the tool loop after 4 calls.
+steps:
+  - rep:
+      {rep_index: 4, rom: 100, confidence: 0.9, rule_quality: DEVIATION,
+       rule_reasons: ["reduced_rom: 100.0° < 80% of baseline 135.0° (74%)"]}
+    llm:
+      - final: {action: DIAGNOSE, rationale: "shoulder injury suspected"}
+    expect:
+      action: PROVIDE_FEEDBACK
+      tools: []
+      overrides: [invalid_action]  # the whole proposal (incl. its rationale) is discarded
+  - rep: {rep_index: 7, rom: 134, confidence: 0.7}
+    llm:
+      - tool_calls: [{name: analyze_recent_repetitions, args: {k: 3}}]
+      - tool_calls: [{name: check_movement_consistency, args: {}}]
+      - tool_calls: [{name: compare_with_session_baseline, args: {}}]
+      - tool_calls: [{name: calculate_movement_metrics, args: {rep_index: 7}}]
+      - tool_calls: [{name: analyze_recent_repetitions, args: {k: 5}}]
+    expect:
+      action: CONTINUE_MONITORING
+      tools:
+        [analyze_recent_repetitions, check_movement_consistency, compare_with_session_baseline,
+         calculate_movement_metrics]
+      overrides: [tool_budget_exceeded]

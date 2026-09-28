@@ -1,0 +1,30 @@
+name: low-confidence deviation dismissed by ROI re-analysis
+description: >
+  A reduced-ROM flag on poorly tracked frames is re-measured with OpenCV 5 DNN on the arm ROI.
+  The re-measurement is normal, so the agent keeps monitoring. OpenCV output changes the decision.
+steps:
+  - rep:
+      rep_index: 4
+      rom: 100
+      confidence: 0.58
+      rule_quality: UNCERTAIN
+      rule_reasons:
+        - "low_tracking_confidence: 0.58 < 0.6"
+        - "possible_reduced_rom: 100.0° < 80% of baseline 135.0° (74%)"
+    tool_outputs:
+      reanalyze_segment_roi:
+        {rom_before: 100, rom_after: 132, confidence_after: 0.86, quality_before: UNCERTAIN,
+         quality_after: GOOD, reasons_after: [], assessment: GOOD}
+    llm:
+      - tool_calls: [{name: reanalyze_segment_roi, args: {rep_index: 4}}]
+      - final:
+          action: CONTINUE_MONITORING
+          rationale: "ROI re-analysis: ROM 132° (98% of baseline) at confidence 0.86; the flag was tracking noise."
+          evidence_refs: {rep_index: 4, rom_after: 132}
+    expect:
+      action: CONTINUE_MONITORING
+      tools: [reanalyze_segment_roi]
+      llm_used: true
+      changed_assessment: true
+      overrides: []
+      confirmed_streak: 0

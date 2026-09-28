@@ -1,0 +1,37 @@
+name: poor lighting, camera adjustment, re-check, monitoring resumes
+description: >
+  The OpenCV camera check drives the instruction; after the user fixes the setup a second check
+  passes and monitoring resumes (closed loop).
+steps:
+  - trigger: quality
+    evidence: {tracking_confidence: 0.41, data_quality_flags: [low_light, out_of_frame]}
+    tool_outputs:
+      check_camera_setup:
+        {issues: [low_light, out_of_frame], assessment: camera_issue,
+         instruction: "Please turn on more light or face a light source."}
+    llm:
+      - tool_calls: [{name: check_camera_setup, args: {window_s: 3}}]
+      - final:
+          action: REQUEST_CAMERA_ADJUSTMENT
+          rationale: "Low light on 80% of frames; the arm leaves the frame."
+          feedback_text: "Please turn on more light or face a light source."
+          evidence_refs: {issues: [low_light, out_of_frame]}
+    expect:
+      action: REQUEST_CAMERA_ADJUSTMENT
+      tools: [check_camera_setup]
+      changed_assessment: true
+      feedback_contains: "light"
+      awaiting_camera_fix: true
+  - trigger: quality
+    evidence: {tracking_confidence: 0.9, data_quality_flags: []}
+    tool_outputs:
+      check_camera_setup: {issues: [], instruction: null, assessment: camera_ok}
+    llm:
+      - tool_calls: [{name: check_camera_setup, args: {window_s: 3}}]
+      - final: {action: CONTINUE_MONITORING, rationale: "Camera check passed; monitoring resumes.",
+                evidence_refs: {camera: ok}}
+    expect:
+      action: CONTINUE_MONITORING
+      tools: [check_camera_setup]
+      changed_assessment: true
+      awaiting_camera_fix: false

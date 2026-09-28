@@ -1,0 +1,9 @@
+name: all good reps
+description: Normal reps never reach the LLM (deterministic triage), so no cost and no latency.
+steps:
+  - rep: {rep_index: 1}
+    expect: {action: CONTINUE_MONITORING, tools: [], llm_used: false}
+  - rep: {rep_index: 2, rom: 138}
+    expect: {action: CONTINUE_MONITORING, tools: [], llm_used: false}
+  - rep: {rep_index: 3, rom: 133}
+    expect: {action: CONTINUE_MONITORING, tools: [], llm_used: false}
