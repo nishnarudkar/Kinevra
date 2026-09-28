@@ -48,3 +48,20 @@ def test_fps_meter() -> None:
     assert meter.elapsed_s == pytest.approx(0.5)
     with pytest.raises(ValueError):
         FpsMeter(alpha=0)
+
+
+def test_draw_skeleton_colours_by_visibility() -> None:
+    from kinevra.schemas import Landmark
+    from kinevra.vision.overlay import draw_skeleton, visibility_colour
+
+    img = np.zeros((100, 100, 3), dtype=np.uint8)
+    lms = {
+        "right_shoulder": Landmark(name="right_shoulder", x=0.2, y=0.2, visibility=0.9),
+        "right_elbow": Landmark(name="right_elbow", x=0.8, y=0.8, visibility=0.9),
+    }
+    out = draw_skeleton(
+        img, lms, [("right_shoulder", "right_elbow"), ("nose", "left_eye")], highlight_side="right"
+    )
+    assert not img.any()
+    assert tuple(int(v) for v in out[50, 50]) == GREEN
+    assert visibility_colour(0.3, 0.5) == AMBER and visibility_colour(0.1, 0.5) == RED

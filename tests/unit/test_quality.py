@@ -80,3 +80,17 @@ def test_grayscale_input(quality_cfg: QualityCfg) -> None:
 )
 def test_person_flags(count: int, expected: list[str]) -> None:
     assert person_flags(count) == expected
+
+
+def test_framing_flags() -> None:
+    from kinevra.schemas import Landmark
+    from kinevra.vision.quality import OUT_OF_FRAME, framing_flags
+
+    req = ["right_shoulder", "right_elbow"]
+    good = {n: Landmark(name=n, x=0.5, y=0.5, visibility=0.9) for n in req}
+    assert framing_flags(good, req, 0.5) == []
+    assert framing_flags({"right_shoulder": good["right_shoulder"]}, req, 0.5) == [OUT_OF_FRAME]
+    low = {**good, "right_elbow": Landmark(name="right_elbow", x=0.5, y=0.5, visibility=0.3)}
+    assert framing_flags(low, req, 0.5) == [OUT_OF_FRAME]
+    out = {**good, "right_elbow": Landmark(name="right_elbow", x=1.1, y=0.5, visibility=0.9)}
+    assert framing_flags(out, req, 0.5) == [OUT_OF_FRAME]

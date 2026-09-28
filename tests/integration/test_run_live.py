@@ -23,7 +23,9 @@ def _run(*args: str) -> subprocess.CompletedProcess[str]:
 
 def test_headless_run_on_video_and_record(synthetic_video: Path, tmp_path: Path) -> None:
     out = tmp_path / "rec.avi"
-    proc = _run("--video", str(synthetic_video), "--headless", "--record", str(out))
+    proc = _run(
+        "--video", str(synthetic_video), "--headless", "--pose", "none", "--record", str(out)
+    )
     assert proc.returncode == 0, proc.stderr
     summary = json.loads(proc.stdout)
     assert summary["frames"] == VIDEO_FRAMES
@@ -34,7 +36,17 @@ def test_headless_run_on_video_and_record(synthetic_video: Path, tmp_path: Path)
 
 
 def test_max_frames_and_downsample(synthetic_video: Path) -> None:
-    proc = _run("--video", str(synthetic_video), "--headless", "--fps", "5", "--max-frames", "4")
+    proc = _run(
+        "--video",
+        str(synthetic_video),
+        "--headless",
+        "--pose",
+        "none",
+        "--fps",
+        "5",
+        "--max-frames",
+        "4",
+    )
     assert proc.returncode == 0, proc.stderr
     assert json.loads(proc.stdout)["frames"] == 4
 
