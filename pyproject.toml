@@ -24,6 +24,7 @@ dev = [
     "mypy>=1.18,<2",
     "pre-commit>=4.3,<5",
     "types-PyYAML>=6.0.12",
+    "onnx>=1.19,<2",  # model preparation only (scripts/download_models.py)
 ]
 
 [tool.uv]
@@ -61,4 +62,5 @@ addopts = "-ra --strict-markers"
 markers = [
     "bedrock: calls Amazon Bedrock (needs AWS credentials; excluded from CI)",
     "camera: needs a physical webcam (excluded from CI)",
+    "models: needs ONNX files in models/ (skipped when missing)",
 ]
