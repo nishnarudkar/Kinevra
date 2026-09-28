@@ -36,8 +36,19 @@ class OneEuroCfg(_Strict):
     d_cutoff: float = Field(gt=0)
 
 
+class SavgolCfg(_Strict):
+    window_s: float = Field(gt=0)
+    polyorder: int = Field(ge=1, le=5)
+
+
 class SmoothingCfg(_Strict):
     one_euro: OneEuroCfg
+    savgol: SavgolCfg
+    max_gap_s: float = Field(gt=0)
+
+
+class FeaturesCfg(_Strict):
+    elevation_baseline_s: float = Field(gt=0)
 
 
 class RepsCfg(_Strict):
@@ -110,6 +121,7 @@ class ExerciseConfig(_Strict):
     visibility_threshold: float = Field(ge=0, le=1)
     processing_fps: float = Field(gt=0)
     smoothing: SmoothingCfg
+    features: FeaturesCfg
     reps: RepsCfg
     baseline: BaselineCfg
     rules: RulesCfg

@@ -23,6 +23,8 @@ class PoseFrame(BaseModel):
     session_id: str
     frame_idx: int
     t: float  # seconds since session start
+    image_width: int  # px of the analysed frame; needed to undo normalisation for angles
+    image_height: int
     landmarks: dict[str, Landmark]
     person_count: int
     frame_quality: float  # 0..1
@@ -33,11 +35,13 @@ class FrameFeatures(BaseModel):
     frame_idx: int
     t: float
     side: Side
-    shoulder_abduction_deg: float | None
-    elbow_flexion_deg: float | None
-    trunk_lean_deg: float | None
+    shoulder_abduction_deg: float | None  # hip-shoulder-elbow; 0 = arm down, 180 = overhead
+    elbow_flexion_deg: float | None  # 180 - interior shoulder-elbow-wrist; 0 = straight
+    trunk_lean_deg: float | None  # signed; + = leaning away from the exercising arm
     angular_velocity_dps: float | None
     confidence: float
+    # (shoulder height above hip - rest baseline) ÷ baseline; + = shrug. None until baseline.
+    shoulder_elevation: float | None = None
 
 
 class RepQuality(str, Enum):

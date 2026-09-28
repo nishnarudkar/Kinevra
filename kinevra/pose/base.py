@@ -163,6 +163,8 @@ class DnnPoseEstimator(ABC):
             session_id=session_id,
             frame_idx=frame_idx,
             t=t,
+            image_width=w,
+            image_height=h,
             landmarks=landmarks,
             person_count=person_count,
             frame_quality=quality.score if quality is not None else 1.0,

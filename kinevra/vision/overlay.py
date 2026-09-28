@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from collections.abc import Iterable, Mapping, Sequence
 
 import cv2
@@ -133,4 +134,38 @@ def draw_skeleton(
         big = highlight_side is not None and name.startswith(highlight_side)
         colour = visibility_colour(lm.visibility, visibility_threshold)
         cv2.circle(out, px(lm), 5 if big else 3, colour, -1, cv2.LINE_AA)
+    return out
+
+
+def mirror_landmarks(landmarks: Mapping[str, Landmark]) -> dict[str, Landmark]:
+    """Landmarks for drawing on a mirrored preview (x → 1 - x). Display only: names are kept,
+    so the subject's right arm stays `right_*` even though it appears on the other side."""
+    return {n: lm.model_copy(update={"x": 1.0 - lm.x}) for n, lm in landmarks.items()}
+
+
+def draw_angle_arc(
+    image: Image,
+    vertex: tuple[float, float],
+    a: tuple[float, float],
+    b: tuple[float, float],
+    value_deg: float,
+    *,
+    colour: tuple[int, int, int] = AMBER,
+    radius: int = 40,
+) -> Image:
+    """Arc at `vertex` between the rays to `a` and `b` (pixels), labelled with `value_deg`."""
+    out = image.copy()
+    vx, vy = vertex
+    phi_a = math.degrees(math.atan2(a[1] - vy, a[0] - vx))
+    phi_b = math.degrees(math.atan2(b[1] - vy, b[0] - vx))
+    sweep = (phi_b - phi_a + 180.0) % 360.0 - 180.0  # shorter way round
+    centre = (round(vx), round(vy))
+    cv2.ellipse(out, centre, (radius, radius), 0.0, phi_a, phi_a + sweep, colour, 2, cv2.LINE_AA)
+    mid = math.radians(phi_a + sweep / 2)
+    tx, ty = vx + (radius + 16) * math.cos(mid), vy + (radius + 16) * math.sin(mid)
+    label = f"{value_deg:.0f} deg"
+    (tw, th), _ = cv2.getTextSize(label, FONT, 0.55, 2)
+    org = (round(tx - tw / 2), round(ty + th / 2))
+    cv2.putText(out, label, org, FONT, 0.55, PANEL, 4, cv2.LINE_AA)  # dark outline
+    cv2.putText(out, label, org, FONT, 0.55, colour, 2, cv2.LINE_AA)
     return out

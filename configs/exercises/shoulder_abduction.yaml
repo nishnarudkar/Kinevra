@@ -7,7 +7,11 @@ landmarks:
 visibility_threshold: 0.5
 processing_fps: 15
 smoothing:
-  one_euro: {min_cutoff: 1.0, beta: 0.05, d_cutoff: 1.0}
+  one_euro: {min_cutoff: 1.0, beta: 0.05, d_cutoff: 1.0}   # live mode
+  savgol: {window_s: 0.4, polyorder: 2}                     # clip mode (offline)
+  max_gap_s: 0.3            # tracking gaps longer than this reset/split the filters
+features:
+  elevation_baseline_s: 1.0 # rest time (arm down) used as the shoulder-height baseline
 reps:
   rest_angle_max: 30
   raise_margin: 15
