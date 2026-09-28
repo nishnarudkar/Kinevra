@@ -31,3 +31,6 @@
 - On Windows without `make`, run the underlying commands: `uv sync --extra gui`,
   `uv run pytest -m "not bedrock and not camera"`, `uv run ruff check .`,
   `uv run ruff format --check .`, `uv run mypy`.
+- The repo lives in a OneDrive-synced folder; OneDrive can lock files in `.venv` and make
+  `uv sync` fail with "Access is denied". Retry, pause OneDrive sync, or point
+  `UV_PROJECT_ENVIRONMENT` at a venv outside OneDrive.

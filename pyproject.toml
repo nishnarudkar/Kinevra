@@ -49,7 +49,7 @@ select = ["E", "F", "W", "I", "B", "UP", "N", "SIM", "RUF"]
 python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
-files = ["kinevra", "tests"]
+files = ["kinevra", "tests", "scripts"]
 
 [[tool.mypy.overrides]]
 module = ["cv2", "cv2.*", "scipy", "scipy.*"]

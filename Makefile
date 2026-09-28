@@ -5,10 +5,10 @@
 CV_EXTRA ?= gui
 UV ?= uv
 
-.PHONY: help setup test lint format typecheck live api web deploy destroy eval clean
+.PHONY: help setup test lint format typecheck live record api web deploy destroy eval clean
 
 help:
-	@echo "setup | test | lint | format | live | api | web | deploy | destroy | eval | clean"
+	@echo "setup | test | lint | format | live | record | api | web | deploy | destroy | eval | clean"
 
 setup:
 	$(UV) sync --locked --extra $(CV_EXTRA)
@@ -32,6 +32,9 @@ typecheck:
 # --- later phases (targets reserved so the interface is stable) ----------------------------
 live:
 	$(UV) run python scripts/run_live.py $(ARGS)
+
+record:
+	$(UV) run python scripts/record_clip.py $(ARGS)
 
 api:
 	@echo "Phase 7: FastAPI app not implemented yet" && exit 1
